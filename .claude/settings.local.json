@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:asmith.media)",
+      "Bash(1 find:*)",
+      "Bash(1 cat:*)",
+      "Bash(ls -la /c/Users/asmit/OneDrive/Desktop/NewsBingeWorthy/*.py)",
+      "Bash(xargs ls:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --use-npm --no-turbopack)"
+    ]
+  }
+}
