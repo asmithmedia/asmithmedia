@@ -33,8 +33,8 @@ export async function GET(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${BASE_URL}/sitevitals/success.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${BASE_URL}/sitevitals/`,
+      success_url: `${BASE_URL}/sitevitals/health-monitor/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${BASE_URL}/sitevitals/health-monitor/`,
     });
 
     if (!session.url) {
