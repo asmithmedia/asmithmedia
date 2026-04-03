@@ -20,6 +20,7 @@ export const metadata: Metadata = {
   title: "About",
   description:
     "Learn about A. Smith Media — a diversified investment & media company based in Frisco, Texas, with a portfolio from tech to construction.",
+  alternates: { canonical: "/about" },
 };
 
 const VALUES = [

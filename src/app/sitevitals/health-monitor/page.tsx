@@ -21,11 +21,13 @@ import { Section, SectionHeader } from "@/components/layout/section";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { JsonLd } from "@/components/shared/json-ld";
 
 export const metadata: Metadata = {
   title: "SiteVitals Health Monitor Pro",
   description:
     "Auto-rollback, real-time monitoring, performance history, Slack alerts, and white-label agency reports for WordPress.",
+  alternates: { canonical: "/sitevitals/health-monitor" },
 };
 
 const features = [
@@ -108,6 +110,59 @@ const faqs = [
 export default function HealthMonitorPage() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "SiteVitals Health Monitor Pro",
+          description:
+            "Auto-rollback, real-time monitoring, performance history, Slack alerts, and white-label agency reports for WordPress.",
+          brand: { "@type": "Organization", name: "A. Smith Media" },
+          offers: [
+            {
+              "@type": "Offer",
+              name: "Single Site",
+              price: "49.00",
+              priceCurrency: "USD",
+              priceValidUntil: "2027-12-31",
+              availability: "https://schema.org/InStock",
+              url: "https://asmith.media/sitevitals/health-monitor",
+            },
+            {
+              "@type": "Offer",
+              name: "Unlimited Sites",
+              price: "149.00",
+              priceCurrency: "USD",
+              priceValidUntil: "2027-12-31",
+              availability: "https://schema.org/InStock",
+              url: "https://asmith.media/sitevitals/health-monitor",
+            },
+          ],
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://asmith.media" },
+            { "@type": "ListItem", position: 2, name: "SiteVitals", item: "https://asmith.media/sitevitals" },
+            { "@type": "ListItem", position: 3, name: "Health Monitor Pro", item: "https://asmith.media/sitevitals/health-monitor" },
+          ],
+        }}
+      />
+
       {/* Hero */}
       <Section className="pt-32 pb-16 text-center">
         <Badge>SiteVitals Health Monitor</Badge>

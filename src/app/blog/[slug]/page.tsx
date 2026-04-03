@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/layout/section";
 import { GradientBlob } from "@/components/shared/gradient-blob";
+import { JsonLd } from "@/components/shared/json-ld";
 import { getAllPosts, getPostBySlug } from "@/lib/wordpress";
 
 function estimateReadTime(html: string): string {
@@ -29,12 +30,32 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = await getPostBySlug(slug);
   if (!post) return {};
+  const description = post.seo?.metaDesc || post.excerpt?.replace(/<[^>]*>/g, "").trim();
   return {
     title: post.seo?.title || post.title,
-    description: post.seo?.metaDesc || post.excerpt?.replace(/<[^>]*>/g, ""),
-    openGraph: post.seo?.opengraphImage
-      ? { images: [{ url: post.seo.opengraphImage.sourceUrl }] }
-      : undefined,
+    description,
+    alternates: { canonical: `/blog/${slug}` },
+    openGraph: {
+      type: "article",
+      title: post.seo?.title || post.title,
+      description,
+      publishedTime: post.date,
+      authors: ["A. Smith Media"],
+      ...(post.seo?.opengraphImage || post.featuredImage?.node
+        ? {
+            images: [
+              {
+                url:
+                  post.seo?.opengraphImage?.sourceUrl ||
+                  post.featuredImage!.node.sourceUrl,
+              },
+            ],
+          }
+        : {}),
+    },
+    twitter: {
+      card: "summary_large_image",
+    },
   };
 }
 
@@ -54,6 +75,41 @@ export default async function BlogPostPage({
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          headline: post.title,
+          description: post.excerpt?.replace(/<[^>]*>/g, "").trim(),
+          datePublished: post.date,
+          author: {
+            "@type": "Organization",
+            name: "A. Smith Media",
+            url: "https://asmith.media",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "A. Smith Media",
+            logo: { "@type": "ImageObject", url: "https://asmith.media/og-default.png" },
+          },
+          mainEntityOfPage: `https://asmith.media/blog/${slug}`,
+          ...(post.featuredImage?.node
+            ? { image: post.featuredImage.node.sourceUrl }
+            : {}),
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://asmith.media" },
+            { "@type": "ListItem", position: 2, name: "Blog", item: "https://asmith.media/blog" },
+            { "@type": "ListItem", position: 3, name: post.title, item: `https://asmith.media/blog/${slug}` },
+          ],
+        }}
+      />
+
       {/* Header */}
       <section className="relative pt-32 pb-12 px-6 overflow-hidden">
         <GradientBlob className="w-[500px] h-[500px] -top-20 -right-20" variant="purple" />
@@ -99,6 +155,7 @@ export default async function BlogPostPage({
                 src={post.featuredImage.node.sourceUrl}
                 alt={post.featuredImage.node.altText || post.title}
                 fill
+                sizes="(max-width: 768px) 100vw, 768px"
                 className="object-cover"
                 priority
               />

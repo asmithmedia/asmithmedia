@@ -13,6 +13,7 @@ export const metadata: Metadata = {
   title: "Blog",
   description:
     "Insights on digital marketing, AI, branding, and technology from A. Smith Media.",
+  alternates: { canonical: "/blog" },
 };
 
 function estimateReadTime(html: string): string {
@@ -65,6 +66,7 @@ export default async function BlogPage() {
                             src={post.featuredImage.node.sourceUrl}
                             alt={post.featuredImage.node.altText || post.title}
                             fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             className="object-cover"
                           />
                         </div>

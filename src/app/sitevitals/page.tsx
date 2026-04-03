@@ -19,6 +19,7 @@ export const metadata: Metadata = {
   title: "SiteVitals — WordPress Plugin Marketplace",
   description:
     "Professional WordPress plugins for site monitoring, speed optimization, and performance management. Built by A. Smith Media.",
+  alternates: { canonical: "/sitevitals" },
 };
 
 const plugins = [

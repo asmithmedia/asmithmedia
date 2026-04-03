@@ -18,11 +18,13 @@ import { Section, SectionHeader } from "@/components/layout/section";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { JsonLd } from "@/components/shared/json-ld";
 
 export const metadata: Metadata = {
   title: "SiteVitals Speed Optimizer Pro",
   description:
     "Critical CSS, unused CSS removal, WebP/AVIF conversion, performance history, CDN integration, and advanced JavaScript optimization for WordPress.",
+  alternates: { canonical: "/sitevitals/speed-optimizer" },
 };
 
 const features = [
@@ -133,6 +135,59 @@ const faqs = [
 export default function SpeedOptimizerPage() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: "SiteVitals Speed Optimizer Pro",
+          description:
+            "Critical CSS, unused CSS removal, WebP/AVIF conversion, performance history, CDN integration, and advanced JavaScript optimization for WordPress.",
+          brand: { "@type": "Organization", name: "A. Smith Media" },
+          offers: [
+            {
+              "@type": "Offer",
+              name: "Single Site",
+              price: "49.00",
+              priceCurrency: "USD",
+              priceValidUntil: "2027-12-31",
+              availability: "https://schema.org/InStock",
+              url: "https://asmith.media/sitevitals/speed-optimizer",
+            },
+            {
+              "@type": "Offer",
+              name: "Unlimited Sites",
+              price: "149.00",
+              priceCurrency: "USD",
+              priceValidUntil: "2027-12-31",
+              availability: "https://schema.org/InStock",
+              url: "https://asmith.media/sitevitals/speed-optimizer",
+            },
+          ],
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((faq) => ({
+            "@type": "Question",
+            name: faq.q,
+            acceptedAnswer: { "@type": "Answer", text: faq.a },
+          })),
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://asmith.media" },
+            { "@type": "ListItem", position: 2, name: "SiteVitals", item: "https://asmith.media/sitevitals" },
+            { "@type": "ListItem", position: 3, name: "Speed Optimizer Pro", item: "https://asmith.media/sitevitals/speed-optimizer" },
+          ],
+        }}
+      />
+
       {/* Hero */}
       <Section className="pt-32 pb-16 text-center">
         <Badge>SiteVitals Speed Optimizer</Badge>

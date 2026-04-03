@@ -21,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import { Section } from "@/components/layout/section";
 import { ScrollReveal } from "@/components/shared/scroll-reveal";
 import { GradientBlob } from "@/components/shared/gradient-blob";
+import { JsonLd } from "@/components/shared/json-ld";
 import { SERVICES } from "@/lib/constants";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -94,6 +95,11 @@ export async function generateMetadata({
   return {
     title: service.title,
     description: service.description,
+    alternates: { canonical: `/services/${slug}` },
+    openGraph: {
+      title: service.title,
+      description: service.description,
+    },
   };
 }
 
@@ -110,6 +116,32 @@ export default async function ServiceDetailPage({
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          name: service.title,
+          description: service.description,
+          provider: {
+            "@type": "Organization",
+            name: "A. Smith Media",
+            url: "https://asmith.media",
+          },
+          areaServed: { "@type": "Country", name: "US" },
+        }}
+      />
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://asmith.media" },
+            { "@type": "ListItem", position: 2, name: "Services", item: "https://asmith.media/services" },
+            { "@type": "ListItem", position: 3, name: service.title, item: `https://asmith.media/services/${slug}` },
+          ],
+        }}
+      />
+
       {/* Hero */}
       <section className="relative pt-32 pb-16 px-6 overflow-hidden">
         <GradientBlob className="w-[500px] h-[500px] -top-20 -right-20" variant="purple" />

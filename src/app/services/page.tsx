@@ -24,6 +24,7 @@ export const metadata: Metadata = {
   title: "Services",
   description:
     "Digital consulting, AI business solutions, branding, book publishing, and more. Explore how A. Smith Media can help your business grow.",
+  alternates: { canonical: "/services" },
 };
 
 const iconMap: Record<string, React.ElementType> = {
