@@ -1,53 +1,24 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Calendar, Clock, Share2 } from "lucide-react";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Calendar, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Section } from "@/components/layout/section";
 import { GradientBlob } from "@/components/shared/gradient-blob";
+import { getAllPosts, getPostBySlug } from "@/lib/wordpress";
 
-// Placeholder until WordPress integration
-const POSTS: Record<
-  string,
-  {
-    title: string;
-    excerpt: string;
-    date: string;
-    readTime: string;
-    category: string;
-    content: string;
-  }
-> = {
-  "ai-transforming-small-business": {
-    title: "How AI Is Transforming Small Business Operations in 2026",
-    excerpt:
-      "Discover the practical AI tools and strategies that small businesses are using to compete with enterprise companies.",
-    date: "2026-03-28",
-    readTime: "5 min read",
-    category: "AI Consulting",
-    content: `
-      <p>Artificial intelligence is no longer the exclusive domain of Fortune 500 companies. In 2026, small businesses across every industry are leveraging AI to streamline operations, reduce costs, and deliver better customer experiences.</p>
-
-      <h2>The Democratization of AI</h2>
-      <p>With the rise of accessible AI platforms and APIs, even a one-person operation can now deploy sophisticated machine learning models. From automated customer support to predictive inventory management, the barriers to entry have never been lower.</p>
-
-      <h2>Practical Applications</h2>
-      <p>Here are the top ways small businesses are putting AI to work today:</p>
-      <ul>
-        <li><strong>Customer Service:</strong> AI chatbots handle routine inquiries 24/7, freeing up human agents for complex issues.</li>
-        <li><strong>Marketing:</strong> AI-powered content creation and ad optimization deliver better ROI with less manual effort.</li>
-        <li><strong>Operations:</strong> Predictive analytics help businesses anticipate demand, optimize pricing, and reduce waste.</li>
-        <li><strong>Finance:</strong> Automated bookkeeping and fraud detection keep businesses secure and compliant.</li>
-      </ul>
-
-      <h2>Getting Started</h2>
-      <p>The key is to start small. Identify your biggest operational bottleneck and explore AI solutions specifically for that problem. Many AI tools offer free tiers or trials, so you can validate the ROI before committing.</p>
-    `,
-  },
-};
+function estimateReadTime(html: string): string {
+  const text = html.replace(/<[^>]*>/g, "");
+  const words = text.split(/\s+/).length;
+  const minutes = Math.max(1, Math.round(words / 250));
+  return `${minutes} min read`;
+}
 
 export async function generateStaticParams() {
-  return Object.keys(POSTS).map((slug) => ({ slug }));
+  const posts = await getAllPosts();
+  return posts.map((post) => ({ slug: post.slug }));
 }
 
 export async function generateMetadata({
@@ -56,9 +27,15 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = POSTS[slug];
+  const post = await getPostBySlug(slug);
   if (!post) return {};
-  return { title: post.title, description: post.excerpt };
+  return {
+    title: post.seo?.title || post.title,
+    description: post.seo?.metaDesc || post.excerpt?.replace(/<[^>]*>/g, ""),
+    openGraph: post.seo?.opengraphImage
+      ? { images: [{ url: post.seo.opengraphImage.sourceUrl }] }
+      : undefined,
+  };
 }
 
 export default async function BlogPostPage({
@@ -67,24 +44,13 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = POSTS[slug];
+  const post = await getPostBySlug(slug);
 
   if (!post) {
-    return (
-      <Section className="pt-32 text-center">
-        <h1 className="text-2xl font-bold mb-4">Post Not Found</h1>
-        <p className="text-muted-foreground mb-6">
-          This post will be available once WordPress is connected.
-        </p>
-        <Link href="/blog">
-          <Button variant="secondary">
-            <ArrowLeft size={16} />
-            Back to Blog
-          </Button>
-        </Link>
-      </Section>
-    );
+    notFound();
   }
+
+  const category = post.categories?.nodes?.[0]?.name;
 
   return (
     <>
@@ -100,9 +66,12 @@ export default async function BlogPostPage({
             All Posts
           </Link>
 
-          <Badge className="mb-4">{post.category}</Badge>
+          {category && <Badge className="mb-4">{category}</Badge>}
           <h1 className="text-3xl md:text-4xl font-bold mb-4">{post.title}</h1>
-          <p className="text-lg text-muted-foreground mb-6">{post.excerpt}</p>
+          <p
+            className="text-lg text-muted-foreground mb-6"
+            dangerouslySetInnerHTML={{ __html: post.excerpt }}
+          />
 
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span className="flex items-center gap-1.5">
@@ -115,11 +84,28 @@ export default async function BlogPostPage({
             </span>
             <span className="flex items-center gap-1.5">
               <Clock size={14} />
-              {post.readTime}
+              {estimateReadTime(post.content)}
             </span>
           </div>
         </div>
       </section>
+
+      {/* Featured Image */}
+      {post.featuredImage?.node && (
+        <Section className="pt-0 pb-0">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative h-64 md:h-96 rounded-xl overflow-hidden">
+              <Image
+                src={post.featuredImage.node.sourceUrl}
+                alt={post.featuredImage.node.altText || post.title}
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+          </div>
+        </Section>
+      )}
 
       {/* Content */}
       <Section className="pt-8">
@@ -136,7 +122,7 @@ export default async function BlogPostPage({
             dangerouslySetInnerHTML={{ __html: post.content }}
           />
 
-          {/* Share / Back */}
+          {/* Back */}
           <div className="mt-12 pt-8 border-t border-border/30 flex items-center justify-between">
             <Link href="/blog">
               <Button variant="ghost" size="sm">

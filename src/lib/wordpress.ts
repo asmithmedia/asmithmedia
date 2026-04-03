@@ -21,27 +21,37 @@ interface GraphQLResponse<T> {
 async function fetchGraphQL<T>(
   query: string,
   variables?: Record<string, unknown>
-): Promise<T> {
+): Promise<T | null> {
   if (!GRAPHQL_URL) {
-    throw new Error(
-      "WORDPRESS_GRAPHQL_URL is not set. Configure it in .env.local."
-    );
+    console.warn("WORDPRESS_GRAPHQL_URL is not set. Skipping GraphQL fetch.");
+    return null;
   }
 
-  const res = await fetch(GRAPHQL_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables }),
-    next: { revalidate: 3600 },
-  });
+  try {
+    const res = await fetch(GRAPHQL_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ query, variables }),
+      next: { revalidate: 3600 },
+    });
 
-  const json: GraphQLResponse<T> = await res.json();
+    if (!res.ok) {
+      console.warn(`WordPress GraphQL returned ${res.status}`);
+      return null;
+    }
 
-  if (json.errors) {
-    throw new Error(json.errors.map((e) => e.message).join(", "));
+    const json: GraphQLResponse<T> = await res.json();
+
+    if (json.errors) {
+      console.warn("WordPress GraphQL errors:", json.errors.map((e) => e.message).join(", "));
+      return null;
+    }
+
+    return json.data;
+  } catch (err) {
+    console.warn("WordPress GraphQL fetch failed:", err);
+    return null;
   }
-
-  return json.data;
 }
 
 // -- Blog Posts --
@@ -69,13 +79,12 @@ export async function getAllPosts(first = 12): Promise<WPPost[]> {
           slug title excerpt content date
           featuredImage { node { sourceUrl altText } }
           categories { nodes { name slug } }
-          seo { title metaDesc opengraphImage { sourceUrl } }
         }
       }
     }`,
     { first }
   );
-  return data.posts.nodes;
+  return data?.posts?.nodes ?? [];
 }
 
 export async function getPostBySlug(slug: string): Promise<WPPost | null> {
@@ -85,12 +94,11 @@ export async function getPostBySlug(slug: string): Promise<WPPost | null> {
         slug title excerpt content date
         featuredImage { node { sourceUrl altText } }
         categories { nodes { name slug } }
-        seo { title metaDesc opengraphImage { sourceUrl } }
       }
     }`,
     { slug }
   );
-  return data.post;
+  return data?.post ?? null;
 }
 
 // -- Services (Custom Post Type) --
@@ -131,7 +139,8 @@ export async function getAllServices(): Promise<WPService[]> {
       }
     }`
   );
-  return data.services.nodes.sort(
+  const nodes = data?.services?.nodes ?? [];
+  return nodes.sort(
     (a, b) => a.serviceFields.displayOrder - b.serviceFields.displayOrder
   );
 }
@@ -160,5 +169,5 @@ export async function getTestimonials(): Promise<WPTestimonial[]> {
       }
     }`
   );
-  return data.testimonials.nodes;
+  return data?.testimonials?.nodes ?? [];
 }

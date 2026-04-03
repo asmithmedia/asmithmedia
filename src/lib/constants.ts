@@ -4,7 +4,7 @@ export const SITE_CONFIG = {
   description:
     "Digital consulting, AI business solutions, branding, and media services based in Frisco, Texas.",
   url: "https://asmith.media",
-  email: "adam@asmith.media",
+  email: "sarah@asmith.media",
   phone: "(469) 294-2834",
   address: "3245 Main St Ste #235-110, Frisco, TX 75034",
   hours: "Monday - Friday, 7:00 AM - 7:00 PM",

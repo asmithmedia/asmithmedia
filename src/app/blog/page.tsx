@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Calendar, Clock } from "lucide-react";
+import { Calendar, Clock } from "lucide-react";
 import { Card, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Section, SectionHeader } from "@/components/layout/section";
+import { Section } from "@/components/layout/section";
 import { ScrollReveal } from "@/components/shared/scroll-reveal";
 import { GradientBlob } from "@/components/shared/gradient-blob";
+import { getAllPosts } from "@/lib/wordpress";
 
 export const metadata: Metadata = {
   title: "Blog",
@@ -13,65 +15,16 @@ export const metadata: Metadata = {
     "Insights on digital marketing, AI, branding, and technology from A. Smith Media.",
 };
 
-// Placeholder posts until WordPress integration
-const POSTS = [
-  {
-    slug: "ai-transforming-small-business",
-    title: "How AI Is Transforming Small Business Operations in 2026",
-    excerpt:
-      "Discover the practical AI tools and strategies that small businesses are using to compete with enterprise companies.",
-    date: "2026-03-28",
-    readTime: "5 min read",
-    category: "AI Consulting",
-  },
-  {
-    slug: "digital-branding-essentials",
-    title: "The Essential Guide to Digital Branding in a Crowded Market",
-    excerpt:
-      "Stand out from the competition with these proven branding strategies that resonate with modern consumers.",
-    date: "2026-03-21",
-    readTime: "7 min read",
-    category: "Branding",
-  },
-  {
-    slug: "google-business-optimization",
-    title: "Maximizing Your Google Business Profile for Local SEO",
-    excerpt:
-      "Step-by-step guide to optimizing your Google Business Profile and dominating local search results.",
-    date: "2026-03-14",
-    readTime: "6 min read",
-    category: "Google Business",
-  },
-  {
-    slug: "chatbot-roi-guide",
-    title: "The ROI of AI Chatbots: What the Numbers Actually Say",
-    excerpt:
-      "We break down the real costs and returns of implementing AI chatbots across different industries.",
-    date: "2026-03-07",
-    readTime: "8 min read",
-    category: "AI Chat Engine",
-  },
-  {
-    slug: "edtech-trends-2026",
-    title: "EdTech Trends Shaping the Classroom of Tomorrow",
-    excerpt:
-      "From adaptive learning to AI tutors, explore the technologies redefining education in 2026.",
-    date: "2026-02-28",
-    readTime: "6 min read",
-    category: "AI Education",
-  },
-  {
-    slug: "self-publishing-guide",
-    title: "Self-Publishing in 2026: A Complete Playbook",
-    excerpt:
-      "Everything you need to know about going from manuscript to market, including AI-assisted editing and marketing.",
-    date: "2026-02-21",
-    readTime: "10 min read",
-    category: "Book Publishing",
-  },
-];
+function estimateReadTime(html: string): string {
+  const text = html.replace(/<[^>]*>/g, "");
+  const words = text.split(/\s+/).length;
+  const minutes = Math.max(1, Math.round(words / 250));
+  return `${minutes} min read`;
+}
 
-export default function BlogPage() {
+export default async function BlogPage() {
+  const posts = await getAllPosts();
+
   return (
     <>
       {/* Hero */}
@@ -94,47 +47,69 @@ export default function BlogPage() {
 
       {/* Posts */}
       <Section className="pt-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {POSTS.map((post, i) => (
-            <ScrollReveal key={post.slug} delay={i * 0.05}>
-              <Link href={`/blog/${post.slug}`}>
-                <Card className="h-full group cursor-pointer hover:bg-card/80 flex flex-col">
-                  {/* Placeholder image area */}
-                  <div className="h-40 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 mb-4 flex items-center justify-center">
-                    <span className="font-mono text-xs text-muted-foreground">
-                      {post.category}
-                    </span>
-                  </div>
+        {posts.length === 0 ? (
+          <p className="text-center text-muted-foreground py-12">
+            No posts yet. Check back soon!
+          </p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {posts.map((post, i) => {
+              const category = post.categories?.nodes?.[0]?.name;
+              return (
+                <ScrollReveal key={post.slug} delay={i * 0.05}>
+                  <Link href={`/blog/${post.slug}`}>
+                    <Card className="h-full group cursor-pointer hover:bg-card/80 flex flex-col">
+                      {post.featuredImage?.node ? (
+                        <div className="h-40 rounded-lg overflow-hidden mb-4 relative">
+                          <Image
+                            src={post.featuredImage.node.sourceUrl}
+                            alt={post.featuredImage.node.altText || post.title}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-40 rounded-lg bg-gradient-to-br from-primary/10 to-accent/10 mb-4 flex items-center justify-center">
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {category || "Blog"}
+                          </span>
+                        </div>
+                      )}
 
-                  <Badge className="mb-3 w-fit">{post.category}</Badge>
+                      {category && (
+                        <Badge className="mb-3 w-fit">{category}</Badge>
+                      )}
 
-                  <CardTitle className="text-base mb-2 group-hover:text-primary transition-colors line-clamp-2">
-                    {post.title}
-                  </CardTitle>
+                      <CardTitle className="text-base mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                        {post.title}
+                      </CardTitle>
 
-                  <CardDescription className="line-clamp-2 flex-1 mb-4">
-                    {post.excerpt}
-                  </CardDescription>
+                      <CardDescription
+                        className="line-clamp-2 flex-1 mb-4"
+                        dangerouslySetInnerHTML={{ __html: post.excerpt }}
+                      />
 
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground pt-4 border-t border-border/30">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={12} />
-                      {new Date(post.date).toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Clock size={12} />
-                      {post.readTime}
-                    </span>
-                  </div>
-                </Card>
-              </Link>
-            </ScrollReveal>
-          ))}
-        </div>
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground pt-4 border-t border-border/30">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          {new Date(post.date).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock size={12} />
+                          {estimateReadTime(post.content)}
+                        </span>
+                      </div>
+                    </Card>
+                  </Link>
+                </ScrollReveal>
+              );
+            })}
+          </div>
+        )}
       </Section>
     </>
   );

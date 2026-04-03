@@ -22,14 +22,34 @@ import { SITE_CONFIG, SERVICES } from "@/lib/constants";
 export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setLoading(true);
-    // Simulate form submission — will connect to API route
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSubmitted(true);
-    setLoading(false);
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error || "Something went wrong.");
+      }
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send message. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -144,6 +164,12 @@ export default function ContactPage() {
                       tabIndex={-1}
                       autoComplete="off"
                     />
+
+                    {error && (
+                      <p className="text-sm text-red-400 bg-red-400/10 rounded-lg px-4 py-2">
+                        {error}
+                      </p>
+                    )}
 
                     <Button
                       type="submit"

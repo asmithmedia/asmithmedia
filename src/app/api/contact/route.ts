@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Resend } from "resend";
 
 export async function POST(req: NextRequest) {
   try {
@@ -17,21 +18,42 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // TODO: Send email via Resend, SendGrid, or similar
-    // For now, log to console
-    console.log("Contact form submission:", {
-      name,
-      email,
-      phone,
-      service,
-      message,
-      timestamp: new Date().toISOString(),
+    const contactEmail = process.env.CONTACT_EMAIL || "sarah@asmith.media";
+    const resend = new Resend(process.env.RESEND_API_KEY);
+
+    const { data, error } = await resend.emails.send({
+      from: "A. Smith Media <noreply@asmith.media>",
+      to: contactEmail,
+      replyTo: email,
+      subject: `New Contact Form: ${name}`,
+      html: `
+        <h2>New Contact Form Submission</h2>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        ${phone ? `<p><strong>Phone:</strong> ${phone}</p>` : ""}
+        ${service ? `<p><strong>Service Interest:</strong> ${service}</p>` : ""}
+        <hr />
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, "<br />")}</p>
+        <hr />
+        <p style="color: #888; font-size: 12px;">Sent from the asmith.media contact form</p>
+      `,
     });
 
+    if (error) {
+      console.error("Resend error:", JSON.stringify(error));
+      return NextResponse.json(
+        { error: "Failed to send message. Please try again." },
+        { status: 500 }
+      );
+    }
+
+    console.log("Email sent:", data?.id);
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (err) {
+    console.error("Contact form error:", err);
     return NextResponse.json(
-      { error: "Failed to process form submission." },
+      { error: "Failed to send message. Please try again." },
       { status: 500 }
     );
   }
