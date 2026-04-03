@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SITE_CONFIG, SOCIAL_LINKS, NAV_LINKS, SERVICES } from "@/lib/constants";
+import { SITE_CONFIG, SERVICES } from "@/lib/constants";
 import { SocialLinks } from "@/components/shared/social-links";
 
 export function Footer() {
@@ -42,22 +42,36 @@ export function Footer() {
             </ul>
           </div>
 
-          {/* Quick Links */}
+          {/* SiteVitals */}
           <div>
             <h4 className="font-mono text-xs uppercase tracking-wider text-muted-foreground mb-4">
-              Quick Links
+              SiteVitals Plugins
             </h4>
             <ul className="space-y-2">
-              {NAV_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
+              <li>
+                <Link
+                  href="/sitevitals"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Plugin Marketplace
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/sitevitals/health-monitor"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Health Monitor Pro
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/sitevitals/speed-optimizer"
+                  className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                >
+                  Speed Optimizer Pro
+                </Link>
+              </li>
             </ul>
           </div>
 
