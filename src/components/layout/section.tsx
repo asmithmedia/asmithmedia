@@ -26,6 +26,7 @@ export function SectionHeader({
   description?: string;
   className?: string;
 }) {
+  const isCentered = className?.includes("text-center");
   return (
     <div className={cn("mb-12 md:mb-16", className)}>
       {label && (
@@ -37,7 +38,12 @@ export function SectionHeader({
         {title}
       </h2>
       {description && (
-        <p className="text-muted-foreground text-lg max-w-2xl leading-relaxed">
+        <p
+          className={cn(
+            "text-muted-foreground text-lg max-w-2xl leading-relaxed",
+            isCentered && "mx-auto"
+          )}
+        >
           {description}
         </p>
       )}
